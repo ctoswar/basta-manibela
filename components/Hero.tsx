@@ -9,6 +9,7 @@ export default function Hero() {
         alt="Basta Manibela showroom lineup of preowned cars and motorcycles"
         fill
         priority
+        sizes="100vw"
         className="hero-photo object-cover object-center"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/60 to-bg/20" />

@@ -5,6 +5,33 @@ import { formatPHP, formatKm } from "@/lib/format";
 import FavoriteButton from "@/components/FavoriteButton";
 import FinancingCalculator from "@/components/FinancingCalculator";
 import ReservationForm from "@/components/ReservationForm";
+import type { Metadata } from "next";
+
+export const revalidate = 60;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
+  const vehicle = await getListingById(params.id);
+  if (!vehicle) return { title: "Vehicle not found" };
+
+  const description = `${vehicle.year} ${vehicle.brand} ${vehicle.model} — ${formatPHP(
+    vehicle.price
+  )}. ${formatKm(vehicle.mileageKm)}, ${vehicle.transmission}, ${vehicle.location}.`;
+
+  return {
+    title: vehicle.title,
+    description,
+    openGraph: {
+      title: vehicle.title,
+      description,
+      images: [vehicle.images[0]],
+      type: "website",
+    },
+  };
+}
 
 const SPEC_ROWS = (vehicle: NonNullable<Awaited<ReturnType<typeof getListingById>>>) => [
   { label: "Year", value: vehicle.year },
@@ -23,14 +50,47 @@ export default async function ListingDetailPage({
   const vehicle = await getListingById(params.id);
   if (!vehicle) notFound();
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Vehicle",
+    name: vehicle.title,
+    brand: vehicle.brand,
+    model: vehicle.model,
+    vehicleModelDate: String(vehicle.year),
+    mileageFromOdometer: {
+      "@type": "QuantitativeValue",
+      value: vehicle.mileageKm,
+      unitCode: "KMT",
+    },
+    color: vehicle.color,
+    vehicleTransmission: vehicle.transmission,
+    fuelType: vehicle.fuelType,
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "PHP",
+      price: vehicle.price,
+      availability:
+        vehicle.status === "available"
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+      areaServed: vehicle.location,
+    },
+  };
+
   return (
     <div className="mx-auto max-w-6xl px-6 py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="grid gap-10 md:grid-cols-2">
         <div className="relative h-96 overflow-hidden rounded-sm">
           <Image
             src={vehicle.images[0]}
             alt={vehicle.title}
             fill
+            priority
+            sizes="(max-width: 768px) 100vw, 50vw"
             className="object-cover"
           />
           <FavoriteButton vehicleId={vehicle.id} />

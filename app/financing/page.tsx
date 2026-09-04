@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import FinancingCalculator from "@/components/FinancingCalculator";
+
+export const metadata: Metadata = {
+  title: "Car loan calculator",
+  description:
+    "Estimate your monthly car or motorcycle loan payment based on price, down payment, interest rate, and term.",
+};
 
 export default function FinancingPage() {
   return (

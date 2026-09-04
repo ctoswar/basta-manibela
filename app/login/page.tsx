@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Log in",
+  robots: { index: false, follow: false },
+};
+
 export default function LoginPage() {
   return (
     <div className="mx-auto flex max-w-md flex-col items-center px-6 py-24">

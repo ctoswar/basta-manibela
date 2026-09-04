@@ -2,6 +2,33 @@ import { getListings } from "@/lib/api/listings";
 import VehicleCard from "@/components/VehicleCard";
 import type { VehicleType } from "@/lib/types";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+// Revalidate every 60s: inventory changes occasionally, not every request.
+// Once a real backend/DB exists, this means Next can serve a cached copy
+// instead of hitting the database on every single page view.
+export const revalidate = 60;
+
+const TYPE_LABELS: Record<string, string> = {
+  car: "Sedans",
+  suv: "SUVs",
+  truck: "Trucks",
+  motorcycle: "Motorcycles",
+};
+
+export function generateMetadata({
+  searchParams,
+}: {
+  searchParams: { type?: string };
+}): Metadata {
+  const label = searchParams.type ? TYPE_LABELS[searchParams.type] : undefined;
+  return {
+    title: label ? `${label} for sale` : "Browse inventory",
+    description: label
+      ? `Inspected, ready-to-drive ${label.toLowerCase()} for sale at Basta Manibela, Lipa City.`
+      : "Browse inspected, ready-to-drive used cars and motorcycles for sale at Basta Manibela, Lipa City.",
+  };
+}
 
 const TYPE_FILTERS: { value: VehicleType | "all"; label: string }[] = [
   { value: "all", label: "All" },
