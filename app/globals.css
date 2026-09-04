@@ -53,6 +53,13 @@ body {
   animation: riseIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Same motion as hero-rise, generic name for reuse anywhere content swaps
+   in without a full route change (e.g. filter results). */
+.rise-in {
+  opacity: 0;
+  animation: riseIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 .reveal {
   opacity: 0;
   transform: translateY(24px);

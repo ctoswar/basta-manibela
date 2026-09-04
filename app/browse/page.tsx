@@ -25,7 +25,7 @@ export default async function BrowsePage({
   return (
     <div className="mx-auto max-w-6xl px-6 py-16">
       <h1 className="font-display text-4xl text-paper">Browse inventory</h1>
-      <p className="mt-2 font-body text-silver">
+      <p key={`count-${activeType ?? "all"}-${searchParams.q ?? ""}`} className="rise-in mt-2 font-body text-silver">
         {listings.length} vehicle{listings.length === 1 ? "" : "s"} available
       </p>
 
@@ -38,10 +38,10 @@ export default async function BrowsePage({
             <Link
               key={value}
               href={href}
-              className={`rounded-sm border px-4 py-2 font-body text-sm transition-colors ${
+              className={`rounded-sm border px-4 py-2 font-body text-sm transition-all duration-200 active:scale-95 ${
                 isActive
                   ? "border-gold bg-gold text-bg"
-                  : "border-white/15 text-silver hover:border-gold/60"
+                  : "border-white/15 text-silver hover:border-gold/60 hover:text-gold-bright"
               }`}
             >
               {label}
@@ -50,14 +50,26 @@ export default async function BrowsePage({
         })}
       </div>
 
-      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {listings.map((vehicle) => (
-          <VehicleCard key={vehicle.id} vehicle={vehicle} />
+      <div
+        key={`${activeType ?? "all"}-${searchParams.q ?? ""}`}
+        className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+      >
+        {listings.map((vehicle, i) => (
+          <div
+            key={vehicle.id}
+            className="rise-in"
+            style={{ animationDelay: `${Math.min(i, 8) * 0.06}s` }}
+          >
+            <VehicleCard vehicle={vehicle} />
+          </div>
         ))}
       </div>
 
       {listings.length === 0 && (
-        <div className="mt-16 rounded-sm border border-white/10 bg-surface p-10 text-center">
+        <div
+          key={`empty-${activeType ?? "all"}`}
+          className="rise-in mt-16 rounded-sm border border-white/10 bg-surface p-10 text-center"
+        >
           <p className="font-body text-silver">
             No vehicles match that filter right now. Try another category or
             check back soon — inventory updates often.
