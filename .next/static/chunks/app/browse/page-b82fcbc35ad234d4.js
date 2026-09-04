@@ -1,0 +1,16 @@
+(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[368],{967:function(e,t,r){Promise.resolve().then(r.bind(r,877)),Promise.resolve().then(r.t.bind(r,8173,23)),Promise.resolve().then(r.t.bind(r,231,23))},877:function(e,t,r){"use strict";r.d(t,{default:function(){return f}});var n=r(7437),o=r(2265);/**
+ * @license lucide-react v0.417.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */let a=e=>e.replace(/([a-z0-9])([A-Z])/g,"$1-$2").toLowerCase(),l=function(){for(var e=arguments.length,t=Array(e),r=0;r<e;r++)t[r]=arguments[r];return t.filter((e,t,r)=>!!e&&r.indexOf(e)===t).join(" ")};/**
+ * @license lucide-react v0.417.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */var i={xmlns:"http://www.w3.org/2000/svg",width:24,height:24,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round",strokeLinejoin:"round"};/**
+ * @license lucide-react v0.417.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */let s=(0,o.forwardRef)((e,t)=>{let{color:r="currentColor",size:n=24,strokeWidth:a=2,absoluteStrokeWidth:s,className:c="",children:u,iconNode:f,...d}=e;return(0,o.createElement)("svg",{ref:t,...i,width:n,height:n,stroke:r,strokeWidth:s?24*Number(a)/Number(n):a,className:l("lucide",c),...d},[...f.map(e=>{let[t,r]=e;return(0,o.createElement)(t,r)}),...Array.isArray(u)?u:[u]])}),c=((e,t)=>{let r=(0,o.forwardRef)((r,n)=>{let{className:i,...c}=r;return(0,o.createElement)(s,{ref:n,iconNode:t,className:l("lucide-".concat(a(e)),i),...c})});return r.displayName="".concat(e),r})("Heart",[["path",{d:"M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z",key:"c3ymky"}]]);var u=r(8324);function f(e){let{vehicleId:t}=e,{isFavorite:r,toggle:o}=(0,u.r)(),a=r(t);return(0,n.jsx)("button",{type:"button",onClick:e=>{e.preventDefault(),o(t)},"aria-pressed":a,"aria-label":a?"Remove from favorites":"Save to favorites",className:"absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-bg/70 backdrop-blur transition-colors hover:bg-bg",children:(0,n.jsx)(c,{className:a?"h-4 w-4 fill-gold text-gold":"h-4 w-4 text-paper",strokeWidth:1.75})})}},8324:function(e,t,r){"use strict";r.d(t,{r:function(){return a}});var n=r(2265);let o="basta-manibela:favorites";function a(){let[e,t]=(0,n.useState)([]);(0,n.useEffect)(()=>{t(function(){try{let e=window.localStorage.getItem(o);return e?JSON.parse(e):[]}catch(e){return[]}}())},[]);let r=(0,n.useCallback)(e=>{t(e),window.localStorage.setItem(o,JSON.stringify(e))},[]),a=(0,n.useCallback)(t=>{r(e.includes(t)?e.filter(e=>e!==t):[...e,t])},[e,r]),l=(0,n.useCallback)(t=>e.includes(t),[e]);return{favoriteIds:e,toggle:a,isFavorite:l}}}},function(e){e.O(0,[173,231,971,23,744],function(){return e(e.s=967)}),_N_E=e.O()}]);

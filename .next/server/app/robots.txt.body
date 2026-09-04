@@ -1,0 +1,6 @@
+User-Agent: *
+Allow: /
+Disallow: /favorites
+Disallow: /login
+
+Sitemap: https://bastamanibela.com/sitemap.xml
