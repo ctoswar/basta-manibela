@@ -1,0 +1,160 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #0A0A0C;
+  color: #F3F1EC;
+}
+
+::selection {
+  background-color: #C9A227;
+  color: #0A0A0C;
+}
+
+/* Visible keyboard focus everywhere */
+:focus-visible {
+  outline: 2px solid #E9C567;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --- Motion system ------------------------------------------------------
+   Two building blocks: a load-in sequence for the hero (fires once, on
+   mount) and a scroll-triggered reveal for everything below the fold
+   (fires once, when a section enters the viewport). Both respect
+   prefers-reduced-motion via the block above. */
+
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-rise {
+  opacity: 0;
+  animation: riseIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Speedometer needle sweep - a recurring brand motif (the gauge in the
+   logo), used once per section rather than a generic spinner or blob. */
+@keyframes needleSweep {
+  from {
+    transform: rotate(-95deg);
+  }
+  to {
+    transform: rotate(35deg);
+  }
+}
+.needle-sweep {
+  transform-origin: 50% 100%;
+  transform: rotate(-95deg);
+}
+.reveal-visible .needle-sweep {
+  animation: needleSweep 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes slowZoom {
+  from {
+    transform: scale(1.08);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+.hero-photo {
+  animation: slowZoom 10s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Page transition - app/template.tsx remounts this on every route change,
+   so every navigation (not just the homepage) gets a deliberate entrance
+   instead of appearing instantly. */
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.page-enter {
+  animation: pageEnter 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Splash screen - gold ring draws in around the logo, echoing the ring in
+   the actual badge, instead of a generic spinner. */
+@keyframes ringDraw {
+  from {
+    stroke-dashoffset: 251;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes splashLogoIn {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.splash-ring {
+  stroke-dasharray: 251;
+  animation: ringDraw 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.splash-logo {
+  animation: splashLogoIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Recurring brand motif: a thin gold hairline used as a section divider,
+   echoing the ring in the logo badge rather than a generic gradient rule. */
+.hairline-gold {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #C9A227, transparent);
+}
+
+/* Speedometer-arc watermark, reused behind stat/feature sections instead of
+   a decorative gradient blob. */
+.arc-watermark {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.arc-watermark svg {
+  position: absolute;
+  opacity: 0.06;
+}
