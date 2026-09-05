@@ -1,10 +1,12 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Check,
   ChevronDown,
   Edit3,
+  LogOut,
   Plus,
   Search,
   Trash2,
@@ -15,6 +17,7 @@ import type { FuelType, Transmission, Vehicle, VehicleType } from "@/lib/types";
 import { formatPHP, formatKm } from "@/lib/format";
 
 const STORAGE_KEY = "basta-manibela:admin-vehicles";
+const AUTH_KEY = "basta-manibela:admin-auth";
 const vehicleTypes: VehicleType[] = ["car", "suv", "truck", "motorcycle"];
 const transmissions: Transmission[] = ["automatic", "manual"];
 const fuelTypes: FuelType[] = ["gasoline", "diesel", "hybrid", "electric"];
@@ -64,6 +67,7 @@ function statusTone(status: Vehicle["status"]) {
 }
 
 export default function AdminInventory() {
+  const router = useRouter();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [form, setForm] = useState<VehicleForm>(emptyForm);
@@ -74,6 +78,11 @@ export default function AdminInventory() {
   const [notice, setNotice] = useState("");
 
   useEffect(() => setVehicles(readVehicles()), []);
+
+  function logout() {
+    localStorage.removeItem(AUTH_KEY);
+    router.push("/admin/login");
+  }
 
   const filteredVehicles = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -177,6 +186,14 @@ export default function AdminInventory() {
             <p className="font-body text-xs uppercase tracking-widest text-muted">Local workspace</p>
             <p className="mt-1 font-body text-sm text-silver">Changes saved on this device</p>
           </div>
+          <button
+            type="button"
+            onClick={logout}
+            className="flex items-center gap-2 border border-white/10 px-4 py-2 font-body text-xs text-muted transition-colors hover:border-red-400/50 hover:text-red-300"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            Log out
+          </button>
         </div>
       </div>
 
