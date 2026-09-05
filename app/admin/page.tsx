@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import AdminInventory from "@/components/AdminInventory";
+import AdminGuard from "@/components/AdminGuard";
 
 export const metadata: Metadata = {
   title: "Admin inventory",
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function AdminPage() {
-  return <AdminInventory />;
+  return (
+    <AdminGuard>
+      <AdminInventory />
+    </AdminGuard>
+  );
 }

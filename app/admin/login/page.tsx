@@ -1,19 +1,35 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Lock, Eye, EyeOff, Shield } from "lucide-react";
 import Link from "next/link";
 
+const AUTH_KEY = "basta-manibela:admin-auth";
+
 export default function AdminLoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [notice, setNotice] = useState("");
+  const [error, setError] = useState("");
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    // Mockup only — no real auth
-    setNotice("This is a mockup. Authentication will be connected in a future phase.");
+    setError("");
+
+    // Mockup auth — accept any non-empty email/password
+    if (!email.trim() || !password.trim()) {
+      setError("Enter both email and password.");
+      return;
+    }
+
+    // Set mock auth state
+    localStorage.setItem(
+      AUTH_KEY,
+      JSON.stringify({ email: email.trim(), loggedInAt: Date.now() })
+    );
+    router.push("/admin");
   }
 
   return (
@@ -107,12 +123,17 @@ export default function AdminLoginPage() {
           </button>
         </form>
 
-        {/* Notice (mockup) */}
-        {notice && (
-          <div className="mt-6 border border-gold/20 bg-gold/5 px-4 py-3 text-center font-body text-sm text-gold-bright">
-            {notice}
+        {/* Error notice */}
+        {error && (
+          <div className="mt-6 border border-red-400/20 bg-red-400/5 px-4 py-3 text-center font-body text-sm text-red-300">
+            {error}
           </div>
         )}
+
+        {/* Mockup notice */}
+        <p className="mt-4 text-center font-body text-xs text-muted">
+          Mockup — any email/password works
+        </p>
 
         {/* Footer link */}
         <p className="mt-8 text-center font-body text-xs text-muted">
