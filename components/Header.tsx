@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Menu, X, UserCheck } from "lucide-react";
 import NavLinks from "@/components/NavLinks";
 
 const NAV_ITEMS = [
@@ -12,8 +12,27 @@ const NAV_ITEMS = [
   { href: "/favorites", label: "Favorites" },
 ];
 
+const AGENT_AUTH_KEY = "basta-manibela:agent-auth";
+
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [agentSession, setAgentSession] = useState<{ name: string } | null>(
+    null
+  );
+
+  useEffect(() => {
+    const raw = localStorage.getItem(AGENT_AUTH_KEY);
+    if (raw) {
+      try {
+        const session = JSON.parse(raw);
+        if (session?.email && session?.role === "sales-agent") {
+          setAgentSession({ name: session.name || "Agent" });
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-bg/90 backdrop-blur">
@@ -59,12 +78,23 @@ export default function Header() {
           </span>
         </button>
 
-        <Link
-          href="/login"
-          className="hidden rounded-sm border border-gold/60 px-4 py-2 font-body text-sm font-medium text-gold-bright transition-colors hover:bg-gold hover:text-bg md:inline-block"
-        >
-          Log in
-        </Link>
+        {/* Desktop auth button */}
+        {agentSession ? (
+          <Link
+            href="/agent"
+            className="hidden items-center gap-2 rounded-sm border border-gold/60 px-4 py-2 font-body text-sm font-medium text-gold-bright transition-colors hover:bg-gold hover:text-bg md:inline-flex"
+          >
+            <UserCheck className="h-4 w-4" />
+            Agent Dashboard
+          </Link>
+        ) : (
+          <Link
+            href="/login"
+            className="hidden rounded-sm border border-gold/60 px-4 py-2 font-body text-sm font-medium text-gold-bright transition-colors hover:bg-gold hover:text-bg md:inline-block"
+          >
+            Log in
+          </Link>
+        )}
       </div>
 
       {/* Mobile menu */}
@@ -92,14 +122,26 @@ export default function Header() {
               className="my-2 border-t border-white/10 transition-all duration-200"
               style={{ transitionDelay: mobileOpen ? "150ms" : "0ms" }}
             />
-            <Link
-              href="/login"
-              onClick={() => setMobileOpen(false)}
-              className="translate-y-0 rounded-sm border border-gold/60 px-4 py-3 text-center font-body text-sm font-medium text-gold-bright transition-all duration-200 hover:bg-gold hover:text-bg"
-              style={{ transitionDelay: mobileOpen ? "200ms" : "0ms" }}
-            >
-              Log in
-            </Link>
+            {agentSession ? (
+              <Link
+                href="/agent"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center justify-center gap-2 rounded-sm border border-gold/60 px-4 py-3 text-center font-body text-sm font-medium text-gold-bright transition-all duration-200 hover:bg-gold hover:text-bg"
+                style={{ transitionDelay: mobileOpen ? "200ms" : "0ms" }}
+              >
+                <UserCheck className="h-4 w-4" />
+                Agent Dashboard
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                onClick={() => setMobileOpen(false)}
+                className="translate-y-0 rounded-sm border border-gold/60 px-4 py-3 text-center font-body text-sm font-medium text-gold-bright transition-all duration-200 hover:bg-gold hover:text-bg"
+                style={{ transitionDelay: mobileOpen ? "200ms" : "0ms" }}
+              >
+                Log in
+              </Link>
+            )}
           </div>
         </nav>
       </div>
