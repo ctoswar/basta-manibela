@@ -55,6 +55,13 @@ export async function getListingById(id: string): Promise<Vehicle | null> {
   return delay(found);
 }
 
+export async function getListingsByIds(ids: string[]): Promise<Vehicle[]> {
+  if (ids.length === 0) return delay([]);
+  const idSet = new Set(ids);
+  const results = ALL_VEHICLES.filter((v) => idSet.has(v.id));
+  return delay(results);
+}
+
 export async function submitReservation(
   req: ReservationRequest
 ): Promise<{ success: boolean; message: string }> {

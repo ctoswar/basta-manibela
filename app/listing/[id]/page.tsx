@@ -99,7 +99,7 @@ export default async function ListingDetailPage({
         <div>
           <p className="flex items-center gap-2 font-body text-sm capitalize text-gold-bright">
             <span>{vehicle.type}</span>
-            <span className="h-3 w-px bg-gold/40" aria-hidden />
+            <span className="h-3 w-px bg-gold/40" aria-hidden="true" />
             <span>{vehicle.status}</span>
           </p>
           <h1 className="mt-2 font-display text-4xl text-paper">{vehicle.title}</h1>

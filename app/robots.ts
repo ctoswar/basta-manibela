@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/favorites", "/login"],
+      disallow: ["/favorites", "/login", "/admin"],
     },
     sitemap: "https://bastamanibela.com/sitemap.xml",
   };
