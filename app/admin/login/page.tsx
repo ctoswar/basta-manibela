@@ -13,23 +13,71 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
 
-    // Mockup auth — accept any non-empty email/password
     if (!email.trim() || !password.trim()) {
       setError("Enter both email and password.");
       return;
     }
+
+    setLoading(true);
 
     // Set mock auth state
     localStorage.setItem(
       AUTH_KEY,
       JSON.stringify({ email: email.trim(), loggedInAt: Date.now() })
     );
-    router.push("/admin");
+
+    // Fake delay to show loading screen
+    setTimeout(() => {
+      router.push("/admin");
+    }, 1500);
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-bg">
+        <div className="text-center">
+          <div className="relative mx-auto mb-6 h-20 w-20">
+            {/* Spinning ring */}
+            <svg
+              className="h-20 w-20 animate-spin"
+              viewBox="0 0 80 80"
+              fill="none"
+            >
+              <circle
+                cx="40"
+                cy="40"
+                r="36"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="text-white/10"
+              />
+              <circle
+                cx="40"
+                cy="40"
+                r="36"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeDasharray="180 40"
+                className="text-gold"
+              />
+            </svg>
+            {/* Shield in center */}
+            <Shield className="absolute inset-0 m-auto h-8 w-8 text-gold" />
+          </div>
+          <p className="font-display text-xl text-paper">Signing in…</p>
+          <p className="mt-2 font-body text-xs text-muted">
+            Verifying credentials
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
