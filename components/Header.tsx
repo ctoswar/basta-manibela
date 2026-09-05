@@ -6,6 +6,12 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import NavLinks from "@/components/NavLinks";
 
+const NAV_ITEMS = [
+  { href: "/browse", label: "Browse" },
+  { href: "/financing", label: "Financing" },
+  { href: "/favorites", label: "Favorites" },
+];
+
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -35,7 +41,22 @@ export default function Header() {
           className="flex h-10 w-10 items-center justify-center text-silver transition-colors hover:text-gold-bright md:hidden"
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
         >
-          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          <span className="relative flex h-5 w-5">
+            <Menu
+              className={`absolute inset-0 h-5 w-5 transition-all duration-300 ${
+                mobileOpen
+                  ? "rotate-90 scale-0 opacity-0"
+                  : "rotate-0 scale-100 opacity-100"
+              }`}
+            />
+            <X
+              className={`absolute inset-0 h-5 w-5 transition-all duration-300 ${
+                mobileOpen
+                  ? "rotate-0 scale-100 opacity-100"
+                  : "-rotate-90 scale-0 opacity-0"
+              }`}
+            />
+          </span>
         </button>
 
         <Link
@@ -47,41 +68,41 @@ export default function Header() {
       </div>
 
       {/* Mobile menu */}
-      {mobileOpen && (
-        <nav className="border-t border-white/10 bg-surface md:hidden">
+      <div
+        className={`overflow-hidden transition-[max-height,opacity] duration-300 ease-out md:hidden ${
+          mobileOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
+        }`}
+      >
+        <nav className="border-t border-white/10 bg-surface">
           <div className="mx-auto flex max-w-6xl flex-col gap-1 px-6 py-4">
-            <Link
-              href="/browse"
-              onClick={() => setMobileOpen(false)}
-              className="rounded-sm px-4 py-3 font-body text-sm text-silver transition-colors hover:bg-white/5 hover:text-gold-bright"
-            >
-              Browse
-            </Link>
-            <Link
-              href="/financing"
-              onClick={() => setMobileOpen(false)}
-              className="rounded-sm px-4 py-3 font-body text-sm text-silver transition-colors hover:bg-white/5 hover:text-gold-bright"
-            >
-              Financing
-            </Link>
-            <Link
-              href="/favorites"
-              onClick={() => setMobileOpen(false)}
-              className="rounded-sm px-4 py-3 font-body text-sm text-silver transition-colors hover:bg-white/5 hover:text-gold-bright"
-            >
-              Favorites
-            </Link>
-            <div className="my-2 border-t border-white/10" />
+            {NAV_ITEMS.map(({ href, label }, i) => (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setMobileOpen(false)}
+                className="translate-y-0 rounded-sm px-4 py-3 font-body text-sm text-silver transition-all duration-200 hover:bg-white/5 hover:text-gold-bright"
+                style={{
+                  transitionDelay: mobileOpen ? `${i * 50}ms` : "0ms",
+                }}
+              >
+                {label}
+              </Link>
+            ))}
+            <div
+              className="my-2 border-t border-white/10 transition-all duration-200"
+              style={{ transitionDelay: mobileOpen ? "150ms" : "0ms" }}
+            />
             <Link
               href="/login"
               onClick={() => setMobileOpen(false)}
-              className="rounded-sm border border-gold/60 px-4 py-3 text-center font-body text-sm font-medium text-gold-bright transition-colors hover:bg-gold hover:text-bg"
+              className="translate-y-0 rounded-sm border border-gold/60 px-4 py-3 text-center font-body text-sm font-medium text-gold-bright transition-all duration-200 hover:bg-gold hover:text-bg"
+              style={{ transitionDelay: mobileOpen ? "200ms" : "0ms" }}
             >
               Log in
             </Link>
           </div>
         </nav>
-      )}
+      </div>
     </header>
   );
 }
