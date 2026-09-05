@@ -10,13 +10,17 @@ export default function ContactSection() {
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <a
-              href="#"
+              href="https://facebook.com/bastamanibela"
+              target="_blank"
+              rel="noopener noreferrer"
               className="rounded-sm bg-gold px-6 py-3 font-body text-sm font-semibold text-bg transition-colors hover:bg-gold-bright"
             >
               Message on Facebook
             </a>
             <a
-              href="#"
+              href="https://wa.me/639171234567"
+              target="_blank"
+              rel="noopener noreferrer"
               className="rounded-sm border border-gold/60 px-6 py-3 font-body text-sm font-semibold text-gold-bright transition-colors hover:bg-gold hover:text-bg"
             >
               Chat on WhatsApp
@@ -27,7 +31,7 @@ export default function ContactSection() {
         <div className="h-72 overflow-hidden rounded-sm border border-white/10">
           <iframe
             title="Basta Manibela location"
-            className="h-full w-full grayscale invert-[0.9]"
+            className="h-full w-full grayscale"
             src="https://www.google.com/maps?q=Lipa%20City%2C%20Batangas&output=embed"
             loading="lazy"
           />

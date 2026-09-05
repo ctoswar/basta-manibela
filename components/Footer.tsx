@@ -28,10 +28,10 @@ export default function Footer() {
           <ul className="mt-3 space-y-2 font-body text-sm text-muted">
             <li>Lipa City, Batangas</li>
             <li>
-              <a href="#" className="hover:text-gold-bright">Message on Facebook</a>
+              <a href="https://facebook.com/bastamanibela" target="_blank" rel="noopener noreferrer" className="hover:text-gold-bright">Message on Facebook</a>
             </li>
             <li>
-              <a href="#" className="hover:text-gold-bright">Chat on WhatsApp</a>
+              <a href="https://wa.me/639171234567" target="_blank" rel="noopener noreferrer" className="hover:text-gold-bright">Chat on WhatsApp</a>
             </li>
           </ul>
         </div>
