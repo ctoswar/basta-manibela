@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { ChevronDown } from "lucide-react";
 import { submitReservation } from "@/lib/api/listings";
 import { SALES_AGENTS } from "@/lib/types";
 
@@ -10,6 +11,21 @@ export default function ReservationForm({ vehicleId }: { vehicleId: string }) {
   const [phone, setPhone] = useState("");
   const [agentId, setAgentId] = useState("");
   const [message, setMessage] = useState("");
+  const [agentOpen, setAgentOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setAgentOpen(false);
+      }
+    }
+    if (agentOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [agentOpen]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -56,21 +72,91 @@ export default function ReservationForm({ vehicleId }: { vehicleId: string }) {
         />
       </label>
 
-      <label className="block">
+      <div className="block">
         <span className="font-body text-xs text-muted">Preferred sales agent (optional)</span>
-        <select
-          value={agentId}
-          onChange={(e) => setAgentId(e.target.value)}
-          className="mt-1 w-full border-b border-white/20 bg-transparent py-2 font-body text-paper focus:border-gold focus:outline-none"
-        >
-          <option value="" className="bg-surface text-paper">No preference</option>
-          {SALES_AGENTS.map((agent) => (
-            <option key={agent.id} value={agent.id} className="bg-surface text-paper">
-              {agent.name}{agent.specialization ? ` — ${agent.specialization}` : ""}
-            </option>
-          ))}
-        </select>
-      </label>
+        <div ref={dropdownRef} className="relative mt-1">
+          <button
+            type="button"
+            onClick={() => setAgentOpen(!agentOpen)}
+            className="flex w-full items-center justify-between border-b border-white/20 bg-transparent py-2 font-body text-left text-paper transition-colors hover:border-white/30 focus:border-gold focus:outline-none"
+          >
+            <span>
+              {!agentId ? (
+                "No preference"
+              ) : (
+                <>
+                  <span>{SALES_AGENTS.find((a) => a.id === agentId)?.name}</span>
+                  {SALES_AGENTS.find((a) => a.id === agentId)?.specialization && (
+                    <span className="ml-2 text-sm text-muted">
+                      — {SALES_AGENTS.find((a) => a.id === agentId)?.specialization}
+                    </span>
+                  )}
+                </>
+              )}
+            </span>
+            <ChevronDown
+              className={`h-4 w-4 text-muted transition-transform duration-300 ease-out ${
+                agentOpen ? "rotate-180" : "rotate-0"
+              }`}
+            />
+          </button>
+
+          {/* Dropdown panel */}
+          <div
+            className={`absolute z-20 mt-1 w-full overflow-hidden border border-white/10 bg-surface shadow-xl transition-all duration-300 ease-out ${
+              agentOpen
+                ? "max-h-60 opacity-100 translate-y-0"
+                : "max-h-0 opacity-0 -translate-y-2 pointer-events-none"
+            }`}
+          >
+            <div className="py-1">
+              {/* No preference option */}
+              <button
+                type="button"
+                onClick={() => {
+                  setAgentId("");
+                  setAgentOpen(false);
+                }}
+                className={`flex w-full flex-col px-4 py-2.5 text-left font-body transition-all duration-200 ${
+                  !agentId
+                    ? "bg-gold/10 text-gold-bright"
+                    : "text-silver hover:bg-white/5 hover:text-paper"
+                }`}
+                style={{
+                  transitionDelay: agentOpen ? "0ms" : "0ms",
+                }}
+              >
+                <span className="text-sm">No preference</span>
+                <span className="text-xs text-muted">Assign any available agent</span>
+              </button>
+
+              {SALES_AGENTS.map((agent, i) => (
+                <button
+                  key={agent.id}
+                  type="button"
+                  onClick={() => {
+                    setAgentId(agent.id);
+                    setAgentOpen(false);
+                  }}
+                  className={`flex w-full flex-col px-4 py-2.5 text-left font-body transition-all duration-200 ${
+                    agentId === agent.id
+                      ? "bg-gold/10 text-gold-bright"
+                      : "text-silver hover:bg-white/5 hover:text-paper"
+                  }`}
+                  style={{
+                    transitionDelay: agentOpen ? `${(i + 1) * 40}ms` : "0ms",
+                  }}
+                >
+                  <span className="text-sm">{agent.name}</span>
+                  {agent.specialization && (
+                    <span className="text-xs text-muted">{agent.specialization}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
 
       <label className="block">
         <span className="font-body text-xs text-muted">Message (optional)</span>
