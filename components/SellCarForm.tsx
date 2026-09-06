@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { Camera, X } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Camera, X, ChevronDown } from "lucide-react";
 import { submitSellCar } from "@/lib/api/listings";
 import type { CarCondition } from "@/lib/types";
 
-const CONDITIONS: { value: CarCondition; label: string }[] = [
-  { value: "excellent", label: "Excellent — like new, no issues" },
-  { value: "good", label: "Good — minor wear, runs well" },
-  { value: "fair", label: "Fair — some repairs needed" },
-  { value: "poor", label: "Poor — significant issues" },
+const CONDITIONS: { value: CarCondition; label: string; desc: string }[] = [
+  { value: "excellent", label: "Excellent", desc: "Like new, no issues" },
+  { value: "good", label: "Good", desc: "Minor wear, runs well" },
+  { value: "fair", label: "Fair", desc: "Some repairs needed" },
+  { value: "poor", label: "Poor", desc: "Significant issues" },
 ];
 
 const MAX_PHOTOS = 5;
@@ -27,7 +27,22 @@ export default function SellCarForm() {
   const [message, setMessage] = useState("");
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoError, setPhotoError] = useState("");
+  const [conditionOpen, setConditionOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setConditionOpen(false);
+      }
+    }
+    if (conditionOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [conditionOpen]);
 
   function handlePhotosChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || []);
@@ -172,20 +187,61 @@ export default function SellCarForm() {
         </label>
       </div>
 
-      <label className="block">
+      <div className="block">
         <span className="font-body text-xs text-muted">Condition</span>
-        <select
-          value={condition}
-          onChange={(e) => setCondition(e.target.value as CarCondition)}
-          className="mt-1 w-full border-b border-white/20 bg-transparent py-2 font-body text-paper focus:border-gold focus:outline-none"
-        >
-          {CONDITIONS.map((c) => (
-            <option key={c.value} value={c.value} className="bg-surface text-paper">
-              {c.label}
-            </option>
-          ))}
-        </select>
-      </label>
+        <div ref={dropdownRef} className="relative mt-1">
+          <button
+            type="button"
+            onClick={() => setConditionOpen(!conditionOpen)}
+            className="flex w-full items-center justify-between border-b border-white/20 bg-transparent py-2 font-body text-left text-paper transition-colors hover:border-white/30 focus:border-gold focus:outline-none"
+          >
+            <span>
+              <span>{CONDITIONS.find((c) => c.value === condition)?.label}</span>
+              <span className="ml-2 text-sm text-muted">
+                — {CONDITIONS.find((c) => c.value === condition)?.desc}
+              </span>
+            </span>
+            <ChevronDown
+              className={`h-4 w-4 text-muted transition-transform duration-300 ease-out ${
+                conditionOpen ? "rotate-180" : "rotate-0"
+              }`}
+            />
+          </button>
+
+          {/* Dropdown panel */}
+          <div
+            className={`absolute z-20 mt-1 w-full overflow-hidden border border-white/10 bg-surface shadow-xl transition-all duration-300 ease-out ${
+              conditionOpen
+                ? "max-h-60 opacity-100 translate-y-0"
+                : "max-h-0 opacity-0 -translate-y-2 pointer-events-none"
+            }`}
+          >
+            <div className="py-1">
+              {CONDITIONS.map((c, i) => (
+                <button
+                  key={c.value}
+                  type="button"
+                  onClick={() => {
+                    setCondition(c.value);
+                    setConditionOpen(false);
+                  }}
+                  className={`flex w-full flex-col px-4 py-2.5 text-left font-body transition-all duration-200 ${
+                    condition === c.value
+                      ? "bg-gold/10 text-gold-bright"
+                      : "text-silver hover:bg-white/5 hover:text-paper"
+                  }`}
+                  style={{
+                    transitionDelay: conditionOpen ? `${i * 40}ms` : "0ms",
+                  }}
+                >
+                  <span className="text-sm">{c.label}</span>
+                  <span className="text-xs text-muted">{c.desc}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
 
       <label className="block">
         <span className="font-body text-xs text-muted">Additional details (optional)</span>
