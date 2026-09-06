@@ -1,4 +1,4 @@
-import type { Vehicle, VehicleFilters, ReservationRequest } from "@/lib/types";
+import type { Vehicle, VehicleFilters, ReservationRequest, SellCarRequest } from "@/lib/types";
 import vehiclesData from "@/lib/data/vehicles.json";
 
 // --- MOCK IMPLEMENTATION ---------------------------------------------------
@@ -78,3 +78,16 @@ export async function submitReservation(
 // For now, favorites live in localStorage via the useFavorites hook.
 // Once accounts exist, swap these for calls to /api/favorites tied to
 // the logged-in user's id.
+
+// --- SELL CAR -----------------------------------------------------------
+export async function submitSellCar(
+  req: SellCarRequest
+): Promise<{ success: boolean; message: string }> {
+  // Real implementation later: POST to /api/sell-car, save to DB,
+  // notify the dealership to review the offer.
+  console.log("Sell car request submitted (mock):", req);
+  return delay({
+    success: true,
+    message: "We received your vehicle details. Our team will review and get back to you with an offer.",
+  });
+}

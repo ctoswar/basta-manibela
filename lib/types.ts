@@ -52,6 +52,20 @@ export interface ReservationRequest {
   agentId?: string;
 }
 
+export type CarCondition = "excellent" | "good" | "fair" | "poor";
+
+export interface SellCarRequest {
+  name: string;
+  phone: string;
+  brand: string;
+  model: string;
+  year: number;
+  mileageKm: number;
+  condition: CarCondition;
+  message?: string;
+  photos?: File[];
+}
+
 export interface User {
   id: string;
   name: string;

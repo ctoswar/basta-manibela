@@ -5,6 +5,7 @@ import { formatPHP, formatKm } from "@/lib/format";
 import FavoriteButton from "@/components/FavoriteButton";
 import FinancingCalculator from "@/components/FinancingCalculator";
 import ReservationForm from "@/components/ReservationForm";
+import SellCarForm from "@/components/SellCarForm";
 import type { Metadata } from "next";
 
 export const revalidate = 60;
@@ -125,6 +126,10 @@ export default async function ListingDetailPage({
           <h3 className="mb-4 font-display text-xl text-paper">Estimate financing</h3>
           <FinancingCalculator initialPrice={vehicle.price} compact />
         </div>
+      </div>
+
+      <div className="mt-16">
+        <SellCarForm />
       </div>
     </div>
   );
