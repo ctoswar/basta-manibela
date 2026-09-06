@@ -2,18 +2,20 @@
 
 import { useState } from "react";
 import { submitReservation } from "@/lib/api/listings";
+import { SALES_AGENTS } from "@/lib/types";
 
 export default function ReservationForm({ vehicleId }: { vehicleId: string }) {
   const [status, setStatus] = useState<"idle" | "submitting" | "sent" | "error">("idle");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [agentId, setAgentId] = useState("");
   const [message, setMessage] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setStatus("submitting");
     try {
-      const res = await submitReservation({ vehicleId, name, phone, message });
+      const res = await submitReservation({ vehicleId, name, phone, agentId, message });
       setStatus(res.success ? "sent" : "error");
     } catch {
       setStatus("error");
@@ -52,6 +54,22 @@ export default function ReservationForm({ vehicleId }: { vehicleId: string }) {
           onChange={(e) => setPhone(e.target.value)}
           className="mt-1 w-full border-b border-white/20 bg-transparent py-2 font-body text-paper focus:border-gold focus:outline-none"
         />
+      </label>
+
+      <label className="block">
+        <span className="font-body text-xs text-muted">Preferred sales agent (optional)</span>
+        <select
+          value={agentId}
+          onChange={(e) => setAgentId(e.target.value)}
+          className="mt-1 w-full border-b border-white/20 bg-transparent py-2 font-body text-paper focus:border-gold focus:outline-none"
+        >
+          <option value="" className="bg-surface text-paper">No preference</option>
+          {SALES_AGENTS.map((agent) => (
+            <option key={agent.id} value={agent.id} className="bg-surface text-paper">
+              {agent.name}{agent.specialization ? ` — ${agent.specialization}` : ""}
+            </option>
+          ))}
+        </select>
       </label>
 
       <label className="block">

@@ -30,12 +30,26 @@ export interface VehicleFilters {
   query?: string;
 }
 
+export interface SalesAgent {
+  id: string;
+  name: string;
+  specialization?: string;
+}
+
+export const SALES_AGENTS: SalesAgent[] = [
+  { id: "agent-1", name: "Carlo Reyes", specialization: "SUVs & Trucks" },
+  { id: "agent-2", name: "Ana Santos", specialization: "Sedans & Compact Cars" },
+  { id: "agent-3", name: "Miguel Cruz", specialization: "Motorcycles" },
+  { id: "agent-4", name: "Priya Mendoza", specialization: "Financing & Trade-ins" },
+];
+
 export interface ReservationRequest {
   vehicleId: string;
   name: string;
   phone: string;
   email?: string;
   message?: string;
+  agentId?: string;
 }
 
 export interface User {
