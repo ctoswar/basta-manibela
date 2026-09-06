@@ -63,6 +63,7 @@ export interface SellCarRequest {
   mileageKm: number;
   condition: CarCondition;
   message?: string;
+  photos?: File[];
 }
 
 export interface User {

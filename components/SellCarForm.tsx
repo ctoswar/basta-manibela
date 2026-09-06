@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { Camera, X } from "lucide-react";
 import { submitSellCar } from "@/lib/api/listings";
 import type { CarCondition } from "@/lib/types";
 
@@ -10,6 +11,9 @@ const CONDITIONS: { value: CarCondition; label: string }[] = [
   { value: "fair", label: "Fair — some repairs needed" },
   { value: "poor", label: "Poor — significant issues" },
 ];
+
+const MAX_PHOTOS = 5;
+const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 export default function SellCarForm() {
   const [status, setStatus] = useState<"idle" | "submitting" | "sent" | "error">("idle");
@@ -21,6 +25,41 @@ export default function SellCarForm() {
   const [mileageKm, setMileageKm] = useState("");
   const [condition, setCondition] = useState<CarCondition>("good");
   const [message, setMessage] = useState("");
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [photoError, setPhotoError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function handlePhotosChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+    setPhotoError("");
+
+    const valid = files.filter((f) => {
+      if (!ACCEPTED_TYPES.includes(f.type)) {
+        setPhotoError("Only JPEG, PNG, and WebP images are allowed.");
+        return false;
+      }
+      if (f.size > 10 * 1024 * 1024) {
+        setPhotoError("Each image must be under 10MB.");
+        return false;
+      }
+      return true;
+    });
+
+    setPhotos((prev) => {
+      const combined = [...prev, ...valid];
+      if (combined.length > MAX_PHOTOS) {
+        setPhotoError(`Maximum ${MAX_PHOTOS} photos allowed.`);
+        return combined.slice(0, MAX_PHOTOS);
+      }
+      return combined;
+    });
+
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function removePhoto(index: number) {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,6 +74,7 @@ export default function SellCarForm() {
         mileageKm: Number(mileageKm),
         condition,
         message,
+        photos: photos.length > 0 ? photos : undefined,
       });
       setStatus(res.success ? "sent" : "error");
     } catch {
@@ -157,6 +197,60 @@ export default function SellCarForm() {
           className="mt-1 w-full border-b border-white/20 bg-transparent py-2 font-body text-paper placeholder:text-muted/50 focus:border-gold focus:outline-none"
         />
       </label>
+
+      {/* Photo upload */}
+      <div>
+        <span className="font-body text-xs text-muted">
+          Photos of your vehicle (optional — up to {MAX_PHOTOS})
+        </span>
+        <div className="mt-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            onChange={handlePhotosChange}
+            className="hidden"
+            id="sell-car-photos"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={photos.length >= MAX_PHOTOS}
+            className="flex w-full items-center justify-center gap-2 rounded-sm border border-dashed border-white/20 bg-white/[0.02] px-4 py-6 font-body text-sm text-muted transition-colors hover:border-gold/40 hover:text-silver disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <Camera className="h-4 w-4" />
+            {photos.length >= MAX_PHOTOS ? "Max photos reached" : "Click to upload photos"}
+          </button>
+        </div>
+
+        {photoError && (
+          <p className="mt-1 font-body text-xs text-red-400">{photoError}</p>
+        )}
+
+        {photos.length > 0 && (
+          <div className="mt-3 grid grid-cols-5 gap-2">
+            {photos.map((file, i) => (
+              <div key={i} className="group relative aspect-square overflow-hidden rounded-sm border border-white/10">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={URL.createObjectURL(file)}
+                  alt={`Upload ${i + 1}`}
+                  className="h-full w-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => removePhoto(i)}
+                  className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-bg/80 text-muted opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
+                  aria-label={`Remove photo ${i + 1}`}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <button
         type="submit"
