@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Camera, X, ChevronDown } from "lucide-react";
 import { submitSellCar } from "@/lib/api/listings";
+import { formatPHP } from "@/lib/format";
 import type { CarCondition } from "@/lib/types";
 
 const CONDITIONS: { value: CarCondition; label: string; desc: string }[] = [
@@ -15,6 +16,30 @@ const CONDITIONS: { value: CarCondition; label: string; desc: string }[] = [
 const MAX_PHOTOS = 5;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
+/** Parse shorthand like "100k", "1.5m" into a number */
+function parseShorthand(raw: string): number | null {
+  const cleaned = raw.trim().toLowerCase();
+  if (!cleaned) return null;
+
+  const match = cleaned.match(/^([\d,.]+)\s*(k|m|b)?$/);
+  if (!match) return null;
+
+  const num = parseFloat(match[1].replace(/,/g, ""));
+  if (isNaN(num)) return null;
+
+  switch (match[2]) {
+    case "k": return num * 1_000;
+    case "m": return num * 1_000_000;
+    case "b": return num * 1_000_000_000;
+    default: return num;
+  }
+}
+
+/** Format number with commas for display */
+function formatPrice(value: number): string {
+  return value.toLocaleString("en-PH");
+}
+
 export default function SellCarForm() {
   const [status, setStatus] = useState<"idle" | "submitting" | "sent" | "error">("idle");
   const [name, setName] = useState("");
@@ -23,6 +48,9 @@ export default function SellCarForm() {
   const [model, setModel] = useState("");
   const [year, setYear] = useState("");
   const [mileageKm, setMileageKm] = useState("");
+  const [mileageDisplay, setMileageDisplay] = useState("");
+  const [askingPriceRaw, setAskingPriceRaw] = useState("");
+  const [askingPrice, setAskingPrice] = useState<number | null>(null);
   const [condition, setCondition] = useState<CarCondition>("good");
   const [message, setMessage] = useState("");
   const [photos, setPhotos] = useState<File[]>([]);
@@ -76,6 +104,37 @@ export default function SellCarForm() {
     setPhotos((prev) => prev.filter((_, i) => i !== index));
   }
 
+  const handleAskingPriceChange = useCallback((raw: string) => {
+    // Allow digits, commas, dots, and k/m/b suffix
+    const filtered = raw.replace(/[^\d.,kKmMbB]/g, "");
+    setAskingPriceRaw(filtered);
+
+    // Try to parse on every change for live preview
+    const parsed = parseShorthand(filtered);
+    setAskingPrice(parsed);
+  }, []);
+
+  const handleAskingPriceBlur = useCallback(() => {
+    // On blur, if there's a valid number, show the formatted version
+    if (askingPrice !== null && askingPrice > 0) {
+      setAskingPriceRaw(formatPrice(askingPrice));
+    }
+  }, [askingPrice]);
+
+  const handleMileageChange = useCallback((raw: string) => {
+    const filtered = raw.replace(/[^\d]/g, "");
+    const num = filtered ? parseInt(filtered, 10) : 0;
+    setMileageKm(filtered);
+    setMileageDisplay(num > 0 ? formatPrice(num) : "");
+  }, []);
+
+  const handleMileageBlur = useCallback(() => {
+    if (mileageKm) {
+      const num = parseInt(mileageKm, 10);
+      if (num > 0) setMileageDisplay(formatPrice(num));
+    }
+  }, [mileageKm]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setStatus("submitting");
@@ -87,6 +146,7 @@ export default function SellCarForm() {
         model,
         year: Number(year),
         mileageKm: Number(mileageKm),
+        askingPrice: askingPrice ?? 0,
         condition,
         message,
         photos: photos.length > 0 ? photos : undefined,
@@ -177,15 +237,43 @@ export default function SellCarForm() {
           <span className="font-body text-xs text-muted">Mileage (km)</span>
           <input
             required
-            type="number"
-            min="0"
-            value={mileageKm}
-            onChange={(e) => setMileageKm(e.target.value)}
-            placeholder="e.g. 35000"
+            type="text"
+            inputMode="numeric"
+            value={mileageDisplay}
+            onChange={(e) => handleMileageChange(e.target.value)}
+            onBlur={handleMileageBlur}
+            placeholder="e.g. 35,000"
             className="mt-1 w-full border-b border-white/20 bg-transparent py-2 font-body text-paper placeholder:text-muted/50 focus:border-gold focus:outline-none"
           />
         </label>
       </div>
+
+      <label className="block">
+        <span className="font-body text-xs text-muted">Asking price</span>
+        <div className="relative mt-1">
+          <span className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 font-body text-sm text-muted">
+            ₱
+          </span>
+          <input
+            required
+            type="text"
+            inputMode="decimal"
+            value={askingPriceRaw}
+            onChange={(e) => handleAskingPriceChange(e.target.value)}
+            onBlur={handleAskingPriceBlur}
+            placeholder="e.g. 500,000 or 500k"
+            className="w-full border-b border-white/20 bg-transparent py-2 pl-5 pr-2 font-body text-paper placeholder:text-muted/50 focus:border-gold focus:outline-none"
+          />
+        </div>
+        {askingPrice !== null && askingPrice > 0 && (
+          <p className="mt-1 font-body text-xs text-gold/70">
+            = {formatPHP(askingPrice)}
+          </p>
+        )}
+        <p className="mt-0.5 font-body text-[10px] text-muted/50">
+          Type a number or use k (thousands) / m (millions)
+        </p>
+      </label>
 
       <div className="block">
         <span className="font-body text-xs text-muted">Condition</span>
