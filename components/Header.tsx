@@ -8,6 +8,7 @@ import NavLinks from "@/components/NavLinks";
 
 const NAV_ITEMS = [
   { href: "/browse", label: "Browse" },
+  { href: "/sell", label: "Sell" },
   { href: "/financing", label: "Financing" },
   { href: "/favorites", label: "Favorites" },
 ];
