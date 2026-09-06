@@ -22,7 +22,6 @@ export default function FinancingCalculator({
   const [termOpen, setTermOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -52,59 +51,122 @@ export default function FinancingCalculator({
   const animatedDown = useAnimatedNumber(result.downPaymentAmount);
   const animatedPrincipal = useAnimatedNumber(result.principal);
 
+  const downPaymentAmount = Math.round(vehiclePrice * (downPaymentPercent / 100));
+
   return (
-    <div className="rounded-sm border border-white/10 bg-surface p-6">
-      <div className="grid gap-6 sm:grid-cols-2">
-        <label className="block">
-          <span className="font-body text-xs text-muted">Vehicle price</span>
-          <input
-            type="number"
-            value={vehiclePrice}
-            min={0}
-            step={10000}
-            onChange={(e) => setVehiclePrice(Number(e.target.value))}
-            className="mt-1 w-full border-b border-white/20 bg-transparent py-2 font-body text-paper focus:border-gold focus:outline-none"
-          />
-        </label>
+    <div className="rounded-sm border border-white/10 bg-surface">
+      {/* Hero: Monthly payment */}
+      <div className="border-b border-white/10 px-6 py-8 text-center">
+        <p className="font-body text-[11px] uppercase tracking-[0.25em] text-muted">
+          Estimated monthly payment
+        </p>
+        <p className="mt-3 font-display text-5xl tracking-tight text-gold-bright transition-colors sm:text-6xl">
+          {formatPHP(Math.round(animatedMonthly))}
+        </p>
+        <p className="mt-2 font-body text-xs text-muted">
+          for {termMonths} months
+        </p>
+      </div>
 
-        <label className="block">
-          <span className="font-body text-xs text-muted">
-            Down payment — {downPaymentPercent}%
+      {/* Inputs */}
+      <div className="space-y-6 px-6 pt-6 pb-6">
+        {/* Vehicle price */}
+        <div>
+          <label className="block">
+            <span className="font-body text-[11px] uppercase tracking-widest text-muted">
+              Vehicle price
+            </span>
+            <div className="relative mt-2">
+              <span className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 font-body text-sm text-muted">
+                ₱
+              </span>
+              <input
+                type="number"
+                value={vehiclePrice}
+                min={0}
+                step={10000}
+                onChange={(e) => setVehiclePrice(Number(e.target.value))}
+                className="w-full border-b border-white/10 bg-transparent py-2 pl-5 pr-2 font-body text-lg text-paper transition-colors placeholder:text-muted/40 focus:border-gold focus:outline-none"
+              />
+            </div>
+          </label>
+        </div>
+
+        {/* Down payment slider */}
+        <div>
+          <div className="flex items-baseline justify-between">
+            <span className="font-body text-[11px] uppercase tracking-widest text-muted">
+              Down payment
+            </span>
+            <span className="font-display text-lg text-paper">
+              {downPaymentPercent}%
+              <span className="ml-1.5 font-body text-xs text-muted">
+                ({formatPHP(downPaymentAmount)})
+              </span>
+            </span>
+          </div>
+          <div className="relative mt-3">
+            <input
+              type="range"
+              min={10}
+              max={80}
+              value={downPaymentPercent}
+              onChange={(e) => setDownPaymentPercent(Number(e.target.value))}
+              className="slider-gold w-full"
+              style={{
+                background: `linear-gradient(to right, #C9A227 0%, #C9A227 ${((downPaymentPercent - 10) / 70) * 100}%, rgba(255,255,255,0.1) ${((downPaymentPercent - 10) / 70) * 100}%, rgba(255,255,255,0.1) 100%)`,
+              }}
+            />
+            <div className="mt-1.5 flex justify-between font-body text-[10px] text-muted">
+              <span>10%</span>
+              <span>80%</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Interest rate slider */}
+        <div>
+          <div className="flex items-baseline justify-between">
+            <span className="font-body text-[11px] uppercase tracking-widest text-muted">
+              Interest rate
+            </span>
+            <span className="font-display text-lg text-paper">
+              {annualRate}%
+              <span className="ml-1.5 font-body text-xs text-muted">/year</span>
+            </span>
+          </div>
+          <div className="relative mt-3">
+            <input
+              type="range"
+              min={3}
+              max={18}
+              step={0.1}
+              value={annualRate}
+              onChange={(e) => setAnnualRate(Number(e.target.value))}
+              className="slider-gold w-full"
+              style={{
+                background: `linear-gradient(to right, #C9A227 0%, #C9A227 ${((annualRate - 3) / 15) * 100}%, rgba(255,255,255,0.1) ${((annualRate - 3) / 15) * 100}%, rgba(255,255,255,0.1) 100%)`,
+              }}
+            />
+            <div className="mt-1.5 flex justify-between font-body text-[10px] text-muted">
+              <span>3%</span>
+              <span>18%</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Loan term dropdown */}
+        <div>
+          <span className="font-body text-[11px] uppercase tracking-widest text-muted">
+            Loan term
           </span>
-          <input
-            type="range"
-            min={10}
-            max={80}
-            value={downPaymentPercent}
-            onChange={(e) => setDownPaymentPercent(Number(e.target.value))}
-            className="mt-3 w-full accent-gold"
-          />
-        </label>
-
-        <label className="block">
-          <span className="font-body text-xs text-muted">
-            Interest rate — {annualRate}% per year
-          </span>
-          <input
-            type="range"
-            min={3}
-            max={18}
-            step={0.1}
-            value={annualRate}
-            onChange={(e) => setAnnualRate(Number(e.target.value))}
-            className="mt-3 w-full accent-gold"
-          />
-        </label>
-
-        <div className="block">
-          <span className="font-body text-xs text-muted">Loan term</span>
-          <div ref={dropdownRef} className="relative mt-1">
+          <div ref={dropdownRef} className="relative mt-2">
             <button
               type="button"
               onClick={() => setTermOpen(!termOpen)}
-              className="flex w-full items-center justify-between border-b border-white/20 bg-transparent py-2 font-body text-left text-paper transition-colors hover:border-white/30 focus:border-gold focus:outline-none"
+              className="flex w-full items-center justify-between border-b border-white/10 bg-transparent py-2 font-body text-left text-paper transition-colors hover:border-white/20 focus:border-gold focus:outline-none"
             >
-              <span>{termMonths} months</span>
+              <span className="text-lg">{termMonths} months</span>
               <ChevronDown
                 className={`h-4 w-4 text-muted transition-transform duration-300 ease-out ${
                   termOpen ? "rotate-180" : "rotate-0"
@@ -112,7 +174,6 @@ export default function FinancingCalculator({
               />
             </button>
 
-            {/* Dropdown panel */}
             <div
               className={`absolute z-20 mt-1 w-full overflow-hidden border border-white/10 bg-surface shadow-xl transition-all duration-300 ease-out ${
                 termOpen
@@ -150,29 +211,104 @@ export default function FinancingCalculator({
         </div>
       </div>
 
-      <div className="mt-8 border-t border-white/10 pt-6">
-        <span className="font-body text-xs text-muted">
-          Estimated monthly payment
-        </span>
-        <p className="font-display text-5xl text-gold-bright transition-colors">
-          {formatPHP(Math.round(animatedMonthly))}
-        </p>
-
-        {!compact && (
-          <div className="mt-4 flex flex-wrap gap-x-8 gap-y-2 font-body text-sm text-silver">
-            <span>Down payment: {formatPHP(Math.round(animatedDown))}</span>
-            <span>Loan amount: {formatPHP(Math.round(animatedPrincipal))}</span>
-            <span>Total interest: {formatPHP(Math.round(animatedInterest))}</span>
-            <span>Total payable: {formatPHP(Math.round(animatedTotal))}</span>
+      {/* Breakdown stats */}
+      {!compact && (
+        <div className="border-t border-white/10 px-6 py-6">
+          <p className="mb-4 font-body text-[11px] uppercase tracking-[0.25em] text-muted">
+            Payment breakdown
+          </p>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {[
+              { label: "Down payment", value: Math.round(animatedDown), accent: false },
+              { label: "Loan amount", value: Math.round(animatedPrincipal), accent: false },
+              { label: "Total interest", value: Math.round(animatedInterest), accent: false },
+              { label: "Total payable", value: Math.round(animatedTotal), accent: true },
+            ].map(({ label, value, accent }) => (
+              <div key={label} className="text-center">
+                <p className="font-body text-[10px] uppercase tracking-wider text-muted">
+                  {label}
+                </p>
+                <p
+                  className={`mt-1 font-display text-lg ${
+                    accent ? "text-gold-bright" : "text-paper"
+                  }`}
+                >
+                  {formatPHP(value)}
+                </p>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
+      )}
+
+      {/* Disclaimer */}
+      <div className="border-t border-white/5 px-6 py-4">
+        <p className="font-body text-[11px] leading-relaxed text-muted/70">
+          This is an estimate for planning purposes only and doesn&apos;t
+          constitute a loan offer. Final terms depend on the financing
+          partner&apos;s approval.
+        </p>
       </div>
 
-      <p className="mt-4 font-body text-xs text-muted">
-        This is an estimate for planning purposes only and doesn&apos;t
-        constitute a loan offer. Final terms depend on the financing
-        partner&apos;s approval.
-      </p>
+      {/* Custom range slider styles */}
+      <style jsx global>{`
+        .slider-gold {
+          -webkit-appearance: none;
+          appearance: none;
+          height: 4px;
+          border-radius: 2px;
+          outline: none;
+        }
+
+        .slider-gold::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: #E9C567;
+          cursor: pointer;
+          border: 3px solid #16171B;
+          box-shadow: 0 0 0 1px rgba(201, 162, 39, 0.3), 0 2px 8px rgba(0, 0, 0, 0.4);
+          transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .slider-gold::-webkit-slider-thumb:hover {
+          transform: scale(1.15);
+          box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.4), 0 2px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .slider-gold::-webkit-slider-thumb:active {
+          transform: scale(1.05);
+        }
+
+        .slider-gold::-moz-range-thumb {
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: #E9C567;
+          cursor: pointer;
+          border: 3px solid #16171B;
+          box-shadow: 0 0 0 1px rgba(201, 162, 39, 0.3), 0 2px 8px rgba(0, 0, 0, 0.4);
+          transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .slider-gold::-moz-range-thumb:hover {
+          transform: scale(1.15);
+        }
+
+        .slider-gold::-moz-range-track {
+          height: 4px;
+          border-radius: 2px;
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        .slider-gold::-moz-range-progress {
+          height: 4px;
+          border-radius: 2px;
+          background: #C9A227;
+        }
+      `}</style>
     </div>
   );
 }
