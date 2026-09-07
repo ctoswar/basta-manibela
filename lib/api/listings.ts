@@ -83,11 +83,34 @@ export async function submitReservation(
 export async function submitSellCar(
   req: SellCarRequest
 ): Promise<{ success: boolean; message: string }> {
-  // Real implementation later: POST to /api/sell-car, save to DB,
-  // notify the dealership to review the offer.
-  console.log("Sell car request submitted (mock):", req);
-  return delay({
-    success: true,
-    message: "We received your vehicle details. Our team will review and get back to you with an offer.",
+  // Build FormData to support photo uploads
+  const formData = new FormData();
+  formData.append("name", req.name);
+  formData.append("phone", req.phone);
+  formData.append("brand", req.brand);
+  formData.append("model", req.model);
+  formData.append("year", String(req.year));
+  formData.append("mileageKm", String(req.mileageKm));
+  formData.append("askingPrice", String(req.askingPrice));
+  formData.append("condition", req.condition);
+  if (req.message) {
+    formData.append("message", req.message);
+  }
+  if (req.photos && req.photos.length > 0) {
+    req.photos.forEach((photo) => {
+      formData.append("photos", photo);
+    });
+  }
+
+  const response = await fetch("/api/sell-car", {
+    method: "POST",
+    body: formData,
   });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    throw new Error(errorData?.message || "Failed to submit sell car request");
+  }
+
+  return response.json();
 }
