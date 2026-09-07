@@ -61,6 +61,7 @@ export interface SellCarRequest {
   model: string;
   year: number;
   mileageKm: number;
+  askingPrice: number;
   condition: CarCondition;
   message?: string;
   photos?: File[];

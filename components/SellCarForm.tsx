@@ -1,19 +1,44 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { Camera, X } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Camera, X, ChevronDown } from "lucide-react";
 import { submitSellCar } from "@/lib/api/listings";
+import { formatPHP } from "@/lib/format";
 import type { CarCondition } from "@/lib/types";
 
-const CONDITIONS: { value: CarCondition; label: string }[] = [
-  { value: "excellent", label: "Excellent — like new, no issues" },
-  { value: "good", label: "Good — minor wear, runs well" },
-  { value: "fair", label: "Fair — some repairs needed" },
-  { value: "poor", label: "Poor — significant issues" },
+const CONDITIONS: { value: CarCondition; label: string; desc: string }[] = [
+  { value: "excellent", label: "Excellent", desc: "Like new, no issues" },
+  { value: "good", label: "Good", desc: "Minor wear, runs well" },
+  { value: "fair", label: "Fair", desc: "Some repairs needed" },
+  { value: "poor", label: "Poor", desc: "Significant issues" },
 ];
 
 const MAX_PHOTOS = 5;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+/** Parse shorthand like "100k", "1.5m" into a number */
+function parseShorthand(raw: string): number | null {
+  const cleaned = raw.trim().toLowerCase();
+  if (!cleaned) return null;
+
+  const match = cleaned.match(/^([\d,.]+)\s*(k|m|b)?$/);
+  if (!match) return null;
+
+  const num = parseFloat(match[1].replace(/,/g, ""));
+  if (isNaN(num)) return null;
+
+  switch (match[2]) {
+    case "k": return num * 1_000;
+    case "m": return num * 1_000_000;
+    case "b": return num * 1_000_000_000;
+    default: return num;
+  }
+}
+
+/** Format number with commas for display */
+function formatPrice(value: number): string {
+  return value.toLocaleString("en-PH");
+}
 
 export default function SellCarForm() {
   const [status, setStatus] = useState<"idle" | "submitting" | "sent" | "error">("idle");
@@ -23,11 +48,29 @@ export default function SellCarForm() {
   const [model, setModel] = useState("");
   const [year, setYear] = useState("");
   const [mileageKm, setMileageKm] = useState("");
+  const [mileageDisplay, setMileageDisplay] = useState("");
+  const [askingPriceRaw, setAskingPriceRaw] = useState("");
+  const [askingPrice, setAskingPrice] = useState<number | null>(null);
   const [condition, setCondition] = useState<CarCondition>("good");
   const [message, setMessage] = useState("");
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoError, setPhotoError] = useState("");
+  const [conditionOpen, setConditionOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setConditionOpen(false);
+      }
+    }
+    if (conditionOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [conditionOpen]);
 
   function handlePhotosChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || []);
@@ -61,6 +104,37 @@ export default function SellCarForm() {
     setPhotos((prev) => prev.filter((_, i) => i !== index));
   }
 
+  const handleAskingPriceChange = useCallback((raw: string) => {
+    // Allow digits, commas, dots, and k/m/b suffix
+    const filtered = raw.replace(/[^\d.,kKmMbB]/g, "");
+    setAskingPriceRaw(filtered);
+
+    // Try to parse on every change for live preview
+    const parsed = parseShorthand(filtered);
+    setAskingPrice(parsed);
+  }, []);
+
+  const handleAskingPriceBlur = useCallback(() => {
+    // On blur, if there's a valid number, show the formatted version
+    if (askingPrice !== null && askingPrice > 0) {
+      setAskingPriceRaw(formatPrice(askingPrice));
+    }
+  }, [askingPrice]);
+
+  const handleMileageChange = useCallback((raw: string) => {
+    const filtered = raw.replace(/[^\d]/g, "");
+    const num = filtered ? parseInt(filtered, 10) : 0;
+    setMileageKm(filtered);
+    setMileageDisplay(num > 0 ? formatPrice(num) : "");
+  }, []);
+
+  const handleMileageBlur = useCallback(() => {
+    if (mileageKm) {
+      const num = parseInt(mileageKm, 10);
+      if (num > 0) setMileageDisplay(formatPrice(num));
+    }
+  }, [mileageKm]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setStatus("submitting");
@@ -72,6 +146,7 @@ export default function SellCarForm() {
         model,
         year: Number(year),
         mileageKm: Number(mileageKm),
+        askingPrice: askingPrice ?? 0,
         condition,
         message,
         photos: photos.length > 0 ? photos : undefined,
@@ -162,30 +237,99 @@ export default function SellCarForm() {
           <span className="font-body text-xs text-muted">Mileage (km)</span>
           <input
             required
-            type="number"
-            min="0"
-            value={mileageKm}
-            onChange={(e) => setMileageKm(e.target.value)}
-            placeholder="e.g. 35000"
+            type="text"
+            inputMode="numeric"
+            value={mileageDisplay}
+            onChange={(e) => handleMileageChange(e.target.value)}
+            onBlur={handleMileageBlur}
+            placeholder="e.g. 35,000"
             className="mt-1 w-full border-b border-white/20 bg-transparent py-2 font-body text-paper placeholder:text-muted/50 focus:border-gold focus:outline-none"
           />
         </label>
       </div>
 
       <label className="block">
-        <span className="font-body text-xs text-muted">Condition</span>
-        <select
-          value={condition}
-          onChange={(e) => setCondition(e.target.value as CarCondition)}
-          className="mt-1 w-full border-b border-white/20 bg-transparent py-2 font-body text-paper focus:border-gold focus:outline-none"
-        >
-          {CONDITIONS.map((c) => (
-            <option key={c.value} value={c.value} className="bg-surface text-paper">
-              {c.label}
-            </option>
-          ))}
-        </select>
+        <span className="font-body text-xs text-muted">Asking price</span>
+        <div className="relative mt-1">
+          <span className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 font-body text-sm text-muted">
+            ₱
+          </span>
+          <input
+            required
+            type="text"
+            inputMode="decimal"
+            value={askingPriceRaw}
+            onChange={(e) => handleAskingPriceChange(e.target.value)}
+            onBlur={handleAskingPriceBlur}
+            placeholder="e.g. 500,000 or 500k"
+            className="w-full border-b border-white/20 bg-transparent py-2 pl-5 pr-2 font-body text-paper placeholder:text-muted/50 focus:border-gold focus:outline-none"
+          />
+        </div>
+        {askingPrice !== null && askingPrice > 0 && (
+          <p className="mt-1 font-body text-xs text-gold/70">
+            = {formatPHP(askingPrice)}
+          </p>
+        )}
+        <p className="mt-0.5 font-body text-[10px] text-muted/50">
+          Type a number or use k (thousands) / m (millions)
+        </p>
       </label>
+
+      <div className="block">
+        <span className="font-body text-xs text-muted">Condition</span>
+        <div ref={dropdownRef} className="relative mt-1">
+          <button
+            type="button"
+            onClick={() => setConditionOpen(!conditionOpen)}
+            className="flex w-full items-center justify-between border-b border-white/20 bg-transparent py-2 font-body text-left text-paper transition-colors hover:border-white/30 focus:border-gold focus:outline-none"
+          >
+            <span>
+              <span>{CONDITIONS.find((c) => c.value === condition)?.label}</span>
+              <span className="ml-2 text-sm text-muted">
+                — {CONDITIONS.find((c) => c.value === condition)?.desc}
+              </span>
+            </span>
+            <ChevronDown
+              className={`h-4 w-4 text-muted transition-transform duration-300 ease-out ${
+                conditionOpen ? "rotate-180" : "rotate-0"
+              }`}
+            />
+          </button>
+
+          {/* Dropdown panel */}
+          <div
+            className={`absolute z-20 mt-1 w-full overflow-hidden border border-white/10 bg-surface shadow-xl transition-all duration-300 ease-out ${
+              conditionOpen
+                ? "max-h-60 opacity-100 translate-y-0"
+                : "max-h-0 opacity-0 -translate-y-2 pointer-events-none"
+            }`}
+          >
+            <div className="py-1">
+              {CONDITIONS.map((c, i) => (
+                <button
+                  key={c.value}
+                  type="button"
+                  onClick={() => {
+                    setCondition(c.value);
+                    setConditionOpen(false);
+                  }}
+                  className={`flex w-full flex-col px-4 py-2.5 text-left font-body transition-all duration-200 ${
+                    condition === c.value
+                      ? "bg-gold/10 text-gold-bright"
+                      : "text-silver hover:bg-white/5 hover:text-paper"
+                  }`}
+                  style={{
+                    transitionDelay: conditionOpen ? `${i * 40}ms` : "0ms",
+                  }}
+                >
+                  <span className="text-sm">{c.label}</span>
+                  <span className="text-xs text-muted">{c.desc}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
 
       <label className="block">
         <span className="font-body text-xs text-muted">Additional details (optional)</span>
