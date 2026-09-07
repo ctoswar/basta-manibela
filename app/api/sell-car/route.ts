@@ -1,17 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
+import { readFile, writeFile, mkdir } from "fs/promises";
+import { existsSync } from "fs";
+import path from "path";
 import type { SellCarRequest } from "@/lib/types";
 
 // File-based storage for sell requests (can be replaced with DB later)
-const STORAGE_KEY = "basta-manibela:sell-requests";
+const DATA_DIR = path.join(process.cwd(), "lib", "data");
+const STORAGE_FILE = path.join(DATA_DIR, "sell-requests.json");
 
-interface StoredSellRequest extends SellCarRequest {
+export interface StoredSellRequest extends SellCarRequest {
   id: string;
   status: "pending" | "reviewed" | "accepted" | "rejected";
   createdAt: string;
+  updatedAt: string;
 }
 
 function generateId(): string {
   return `sell-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+async function readSellRequests(): Promise<StoredSellRequest[]> {
+  try {
+    if (!existsSync(STORAGE_FILE)) {
+      return [];
+    }
+    const data = await readFile(STORAGE_FILE, "utf-8");
+    return JSON.parse(data) as StoredSellRequest[];
+  } catch {
+    return [];
+  }
+}
+
+async function writeSellRequests(requests: StoredSellRequest[]): Promise<void> {
+  if (!existsSync(DATA_DIR)) {
+    await mkdir(DATA_DIR, { recursive: true });
+  }
+  await writeFile(STORAGE_FILE, JSON.stringify(requests, null, 2));
 }
 
 function validateSellCarRequest(data: unknown): {
@@ -75,6 +99,37 @@ function validateSellCarRequest(data: unknown): {
   };
 }
 
+// GET - List all sell requests
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get("status");
+
+    let requests = await readSellRequests();
+
+    // Filter by status if provided
+    if (status && ["pending", "reviewed", "accepted", "rejected"].includes(status)) {
+      requests = requests.filter((r) => r.status === status);
+    }
+
+    // Sort by creation date (newest first)
+    requests.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    return NextResponse.json({
+      success: true,
+      data: requests,
+      total: requests.length,
+    });
+  } catch (error) {
+    console.error("Error fetching sell requests:", error);
+    return NextResponse.json(
+      { success: false, message: "Failed to fetch sell requests" },
+      { status: 500 }
+    );
+  }
+}
+
+// POST - Create new sell request
 export async function POST(request: NextRequest) {
   try {
     const contentType = request.headers.get("content-type") || "";
@@ -127,19 +182,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Create stored request with metadata
+    const now = new Date().toISOString();
     const storedRequest: StoredSellRequest = {
       ...validation.parsed!,
       id: generateId(),
       status: "pending",
-      createdAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
     };
 
-    // Store the request (in production, save to database)
-    // For now, we log it. In a real implementation:
-    // - Save to database
-    // - Send notification to dealership
-    // - Queue for admin review
-    console.log("Sell car request received:", storedRequest);
+    // Save to file
+    const requests = await readSellRequests();
+    requests.push(storedRequest);
+    await writeSellRequests(requests);
 
     return NextResponse.json({
       success: true,
@@ -153,12 +208,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-// Handle unsupported methods
-export async function GET() {
-  return NextResponse.json(
-    { success: false, message: "Method not allowed" },
-    { status: 405 }
-  );
 }

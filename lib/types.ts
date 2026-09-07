@@ -67,6 +67,15 @@ export interface SellCarRequest {
   photos?: File[];
 }
 
+export type SellRequestStatus = "pending" | "reviewed" | "accepted" | "rejected";
+
+export interface StoredSellRequest extends SellCarRequest {
+  id: string;
+  status: SellRequestStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface User {
   id: string;
   name: string;

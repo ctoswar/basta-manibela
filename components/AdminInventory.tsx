@@ -186,14 +186,22 @@ export default function AdminInventory() {
             <p className="font-body text-xs uppercase tracking-widest text-muted">Local workspace</p>
             <p className="mt-1 font-body text-sm text-silver">Changes saved on this device</p>
           </div>
-          <button
-            type="button"
-            onClick={logout}
-            className="flex items-center gap-2 border border-white/10 px-4 py-2 font-body text-xs text-muted transition-colors hover:border-red-400/50 hover:text-red-300"
-          >
-            <LogOut className="h-3.5 w-3.5" />
-            Log out
-          </button>
+          <div className="flex items-center gap-3">
+            <a
+              href="/admin/sell-requests"
+              className="flex items-center gap-2 border border-gold/50 px-4 py-2 font-body text-xs text-gold transition-colors hover:bg-gold/10"
+            >
+              Sell Requests
+            </a>
+            <button
+              type="button"
+              onClick={logout}
+              className="flex items-center gap-2 border border-white/10 px-4 py-2 font-body text-xs text-muted transition-colors hover:border-red-400/50 hover:text-red-300"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              Log out
+            </button>
+          </div>
         </div>
       </div>
 
